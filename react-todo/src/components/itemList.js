@@ -23,7 +23,6 @@ export default function SimpleList() {
         .doc(id)
         .set({ title: title, done: true });
       let ok = document.getElementById(id + "text");
-      console.log("Ok: ", ok);
       ok.style.textDecoration = "line-through";
     }
     if (done) {
@@ -32,7 +31,6 @@ export default function SimpleList() {
         .doc(id)
         .set({ title: title, done: false });
       let ok = document.getElementById(id + "text");
-      console.log("Ok: ", ok);
       ok.style.textDecoration = "";
     }
   };
@@ -40,7 +38,6 @@ export default function SimpleList() {
   React.useEffect(() => {
     const fetchData = async () => {
       db.collection("items").onSnapshot(function(data) {
-        console.log("Data: ", data);
         setItems(data.docs.map(doc => ({ ...doc.data(), id: doc.id })));
       });
     };
@@ -65,15 +62,6 @@ export default function SimpleList() {
     this.editForm = <Input></Input>;
     this.setState({ showEdit: true });
   };
-  /*
-  const checkComplete = (items) => {
-    for (item in items){
-      if (item.done = false){
-
-      }
-    }
-  }
-  */
 
   return (
     <div>
