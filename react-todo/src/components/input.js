@@ -18,7 +18,14 @@ export default function InputWithIcon() {
   const [newItem, setNewItem] = React.useState("");
 
   const onCreate = () => {
-    db.collection("items").add({ title: newItem });
+    db.collection("items").add({ title: newItem, done: false });
+  };
+
+  const keyPressed = event => {
+    if (event.key === "Enter") {
+      db.collection("items").add({ title: newItem, done: false });
+      document.getElementById("input-with-icon-grid").value = "";
+    }
   };
 
   return (
@@ -36,7 +43,9 @@ export default function InputWithIcon() {
               type="text"
               value={newItem}
               onChange={e => setNewItem(e.target.value)}
-              label="Create TODO item"
+              onKeyPress={keyPressed}
+              label="Add To-Do"
+              color="primary"
             />
           </Grid>
         </Grid>

@@ -1,30 +1,41 @@
 import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
-import Divider from "@material-ui/core/Divider";
 import IconButton from "@material-ui/core/IconButton";
+import { Tooltip } from "@material-ui/core";
 import DeleteIcon from "@material-ui/icons/Delete";
-import MoreVertIcon from "@material-ui/icons/MoreVert";
+import EditIcon from "@material-ui/icons/Edit";
+import Checkbox from "@material-ui/core/Checkbox";
 import db from "../firebase";
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    width: "100%",
-    backgroundColor: theme.palette.background.paper
-  }
-}));
-
-function ListItemLink(props) {
-  return <ListItem button component="a" {...props} />;
-}
+import Input from "./input";
 
 export default function SimpleList() {
-  const classes = useStyles();
-
+  const [checkBox, setCheckBox] = React.useState({});
   const [items, setItems] = React.useState([]);
   const [updateItem, setUpdateItem] = React.useState("");
+
+  const handleChange = (id, title, done) => event => {
+    if (!done) {
+      setCheckBox({ ...checkBox, [id]: event.target.checked });
+      db.collection("items")
+        .doc(id)
+        .set({ title: title, done: true });
+      let ok = document.getElementById(id + "text");
+      console.log("Ok: ", ok);
+      ok.style.textDecoration = "line-through";
+    }
+    if (done) {
+      setCheckBox({ ...checkBox, [id]: event.target.checked });
+      db.collection("items")
+        .doc(id)
+        .set({ title: title, done: false });
+      let ok = document.getElementById(id + "text");
+      console.log("Ok: ", ok);
+      ok.style.textDecoration = "";
+    }
+  };
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -37,35 +48,65 @@ export default function SimpleList() {
     fetchData();
   }, []);
 
-  function onDelete(id) {
+  function onDelete(id, done) {
+    if (done) {
+      document.getElementById(id + "text").style.textDecoration = "";
+    }
     console.log("Delete Called: ", id);
     db.collection("items")
       .doc(id)
       .delete();
   }
 
-  const onUpdate = id => {
+  const onUpdate = (id, title) => {
     db.collection("items")
       .doc(id)
-      .set({ title: updateItem });
+      .set({ title: title, done: false });
+    this.editForm = <Input></Input>;
+    this.setState({ showEdit: true });
   };
+  /*
+  const checkComplete = (items) => {
+    for (item in items){
+      if (item.done = false){
+
+      }
+    }
+  }
+  */
 
   return (
-    <div className={classes.root}>
+    <div>
       <List component="nav" aria-label="main mailbox folders">
         {items.map(item => (
-          <ListItem id={item.id}>
-            <ListItemText primary={item.title} />
-            <IconButton onClick={() => onDelete(item.id)}>
-              <DeleteIcon />
+          <ListItem
+            button
+            id={item.id}
+            style={{
+              width: "100%",
+              backgroundColor: "",
+              marginBottom: "0.5rem"
+            }}
+          >
+            <Checkbox
+              checked={item.done}
+              onChange={handleChange(item.id, item.title, item.done)}
+              color="primary"
+            />
+            <ListItemText id={item.id + "text"} primary={item.title} />
+            <IconButton onClick={() => onUpdate(updateItem)}>
+              <Tooltip title="Edit">
+                <EditIcon />
+              </Tooltip>
             </IconButton>
-            <IconButton onClick={() => onUpdate(item.id)}>
-              <MoreVertIcon />
+            <IconButton onClick={() => onDelete(item.id, item.done)}>
+              <Tooltip title="Delete">
+                <DeleteIcon />
+              </Tooltip>
             </IconButton>
           </ListItem>
         ))}
       </List>
-      <Divider />
     </div>
   );
 }
